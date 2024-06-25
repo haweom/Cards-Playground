@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Card Builder</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="/css/dark-mode.css">
+    <link rel="stylesheet" href="/css/card-styles.css">
+    <style>
+        .theme-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+        }
+        .back {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+        }
+        .random-buttons {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="theme-toggle">
+    <button id="toggleButton" class="btn btn-secondary">Light/Dark</button>
+</div>
+
+<form th:action="@{/collection}" method="get" class="form-inline">
+    <input type="hidden" name="userId" th:value="${userId}">
+    <button class="btn btn-success mb-3 back" type="submit">Back</button>
+</form>
+
+<div class="cb-card-builder-container">
+    <h1 class="text-center">Card Builder</h1>
+    <div class="alert alert-danger" id="errorMessage" style="display:none;"></div>
+    <div class="cb-card">
+        <div class="cb-card-header">
+            <div class="form-group">
+                <label for="name" class="text-center">Name:</label>
+                <input type="text" id="name" name="name" class="form-control" th:value="${card.name}">
+                <button type="button" class="btn btn-secondary random-buttons" onclick="randomizeField('name')">Randomize</button>
+            </div>
+            <div class="form-group">
+                <label for="cost" class="text-center">Cost:</label>
+                <input type="number" id="cost" name="cost" class="form-control" th:value="${card.cost}">
+                <button type="button" class="btn btn-secondary random-buttons" onclick="randomizeField('cost')">Randomize</button>
+            </div>
+        </div>
+
+        <div class="cb-card-image">
+            <img id="previewImage" th:src="@{'/uploads/' + ${card.image}}" alt="">
+            <div class="form-group">
+                <label for="file">Image:</label>
+                <input type="file" id="file" name="file" class="form-control" accept="image/png" onchange="updateImagePreview()">
+            </div>
+        </div>
+
+        <div class="cb-card-type">
+            <div class="form-group">
+                <label for="type">Type:</label>
+                <input type="text" id="type" name="type" class="form-control" th:value="${card.type}">
+                <button type="button" class="btn btn-secondary random-buttons" onclick="randomizeField('type')">Randomize</button>
+            </div>
+        </div>
+
+        <div class="cb-card-text">
+            <div class="form-group">
+                <label for="text">Text:</label>
+                <input type="text" id="text" name="text" class="form-control" th:value="${card.text}">
+                <button type="button" class="btn btn-secondary random-buttons" onclick="randomizeField('text')">Randomize</button>
+            </div>
+        </div>
+
+        <div class="cb-card-footer">
+            <div class="form-group">
+                <label for="attack" class="text-center">Attack:</label>
+                <input type="number" id="attack" name="attack" class="form-control" th:value="${card.attack}">
+                <button type="button" class="btn btn-secondary random-buttons" onclick="randomizeField('attack')">Randomize</button>
+            </div>
+            <div class="form-group">
+                <label for="toughness" class="text-center">Toughness:</label>
+                <input type="number" id="toughness" name="toughness" class="form-control" th:value="${card.toughness}">
+                <button type="button" class="btn btn-secondary random-buttons" onclick="randomizeField('toughness')">Randomize</button>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="cardId" name="cardId" th:value="${card.id}" class="form-control">
+    <input type="hidden" id="username" name="user.username" th:value="${user.username}" class="form-control">
+    <input type="hidden" id="password" name="user.password" th:value="${user.password}" class="form-control">
+    <input type="hidden" id="userId" name="userId" th:value="${userId}" class="form-control">
+
+    <button type="button" class="btn btn-success btn-block mt-3" onclick="submitForm()">Save Card</button>
+</div>
+
+<script>
+    const randomNames = ["Roland", "Sigurd", "Destiny", "Shadow", "Delta"];
+    const randomTypes = ["Warrior", "Mage", "Rogue", "Cleric", "Hunter"];
+    const randomTexts = ["Quick attack", "Stealth", "Magic shield", "Regenerate", "Double damage"];
+
+    function getRandomValue(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function getRandomNumber() {
+        return Math.floor(Math.random() * 13);
+    }
+
+    function randomizeField(field) {
+        switch(field) {
+            case 'name':
+                document.getElementById(field).value = getRandomValue(randomNames);
+                break;
+            case 'cost':
+            case 'attack':
+            case 'toughness':
+                document.getElementById(field).value = getRandomNumber();
+                break;
+            case 'type':
+                document.getElementById(field).value = getRandomValue(randomTypes);
+                break;
+            case 'text':
+                document.getElementById(field).value = getRandomValue(randomTexts);
+                break;
+        }
+    }
+
+    function updateImagePreview() {
+        const file = document.getElementById('file').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function uploadFile(file, callback) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                callback(data.filename);
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+                alert('Failed to upload image');
+            });
+    }
+
+    function submitForm() {
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.style.display = 'none';
+
+        const name = document.getElementById('name').value;
+        const cost = document.getElementById('cost').value;
+        const type = document.getElementById('type').value;
+        const text = document.getElementById('text').value;
+        const attack = document.getElementById('attack').value;
+        const toughness = document.getElementById('toughness').value;
+
+        if (!name || !type || !text || cost < 0 || attack < 0 || toughness < 0) {
+            errorMessage.style.display = 'block';
+            errorMessage.innerText = 'Please fill in all fields correctly. Numbers must be zero or greater.';
+            return;
+        }
+
+        const file = document.getElementById('file').files[0];
+        if (file) {
+            uploadFile(file, function(filename) {
+                submitCardForm(filename);
+            });
+        } else {
+            submitCardForm('');
+        }
+    }
+
+    function submitCardForm(filename) {
+        const cardId = document.getElementById('cardId').value;
+        const card = {
+            id: cardId,
+            name: document.getElementById('name').value,
+            cost: document.getElementById('cost').value,
+            type: document.getElementById('type').value,
+            attack: document.getElementById('attack').value,
+            toughness: document.getElementById('toughness').value,
+            text: document.getElementById('text').value,
+            image: filename
+        };
+
+        const user = {
+            id: document.getElementById('userId').value,
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+
+        const cardLogInDTO = {
+            card: card,
+            user: user
+        };
+
+        const redirectId = document.getElementById('userId').value;
+        const url = cardId ? '/html/cards/update/' + cardId : '/html/cards/create';
+        const method = cardId ? 'PATCH' : 'POST';
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(cardLogInDTO)
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .then(() => {
+                alert('Card saved successfully!');
+                window.location.href = '/collection?userId=' + redirectId;
+            })
+            .catch(error => {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.style.display = 'block';
+                errorMessage.innerText = error.message;
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            const currentTheme = document.getElementById('theme-stylesheet').getAttribute('href');
+            const newTheme = currentTheme === '/css/light-mode.css' ? '/css/dark-mode.css' : '/css/light-mode.css';
+            document.getElementById('theme-stylesheet').setAttribute('href', newTheme);
+        });
+
+        const initialImage = '';
+        if (initialImage) {
+            document.getElementById('previewImage').src = '/uploads/' + initialImage;
+        }
+    });
+</script>
+</body>
+</html>

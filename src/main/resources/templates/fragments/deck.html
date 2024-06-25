@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Deck Fragment</title>
+</head>
+<body>
+<div th:fragment="deckFragment(deck)">
+    <div class="deck">
+        <span class="deck-name" th:text="${deck.name}"></span>
+    </div>
+</div>
+</body>
+</html>

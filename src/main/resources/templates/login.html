@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="/css/dark-mode.css">
+    <style>
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="theme-toggle" class="theme-toggle">
+    <button id="toggleButton" class="btn btn-secondary">Light/Dark</button>
+</div>
+<div class="container mt-5">
+    <h1 class="display-1 text-success text-center">CardsPlayground <span>s27029</span></h1>
+    <br>
+    <h2>Login</h2>
+    <form th:action="@{/login}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">Login</button>
+    </form>
+    <br>
+    <h2>Register</h2>
+    <form th:action="@{/register}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <div class="form-group">
+            <label for="registerUsername">Username:</label>
+            <input type="text" class="form-control" id="registerUsername" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="registerPassword">Password:</label>
+            <input type="password" class="form-control" id="registerPassword" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-success">Register</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            const currentTheme = document.getElementById('theme-stylesheet').getAttribute('href');
+            const newTheme = currentTheme === '/css/light-mode.css' ? '/css/dark-mode.css' : '/css/light-mode.css';
+            document.getElementById('theme-stylesheet').setAttribute('href', newTheme);
+        });
+    });
+</script>
+</body>
+</html>

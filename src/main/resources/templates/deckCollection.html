@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Deck Collection</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="/css/dark-mode.css">
+    <link rel="stylesheet" href="/css/card-styles.css">
+    <style>
+        .deck-name{
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <div id="theme-toggle" class="theme-toggle">
+        <button id="toggleButton" class="btn btn-secondary">Light/Dark</button>
+    </div>
+    <a th:href="@{/logout}" class="btn btn-danger my-2 my-sm-0 logout">Logout</a>
+
+    <div class = "bar">
+
+        <form th:action="@{/collection/search}" method="get" class="form-inline">
+            <label for="searchInput"></label><input type="text" name="name" id="searchInput" class="form-control mr-sm-2 search-mode" placeholder="Search by name...">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+
+        <form th:action="@{/collection}" method="get" class="form-inline">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Clear filters</button>
+        </form>
+
+        <form th:action="@{/deck-builder(userId=${userId})}" method="get" class="form-inline">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <button class="btn btn-warning my-2 my-sm-0" type="submit">Create New Deck</button>
+        </form>
+
+        <form th:action="@{/collection}" method="get" class="form-inline">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <button class="btn btn-primary my-2 my-sm-0" type="submit">Cards</button>
+        </form>
+
+    </div>
+    <div class="decks-container">
+        <div id="decksContainer">
+            <div class="row">
+
+                <div th:each="deck : ${decks}" class="col-md-6 col-lg-4 mb-4">
+
+                    <div class="deck-wrapper">
+                        <div class="deck text-center">
+                            <div th:replace="~{fragments/deck :: deckFragment(${deck})}"></div>
+
+                            <div class="deck-buttons">
+                                <form th:action="@{/deck-builder}" method="get">
+                                    <input type="hidden" name="userId" th:value="${userId}">
+                                    <input type="hidden" name="deckId" th:value="${deck.id}">
+                                    <button class="btn btn-primary" type="submit">Edit</button>
+                                </form>
+
+                                <button class="btn btn-danger" type="button" onclick="deleteCard(this);"
+                                        th:data-user-id="${userId}" th:data-deck-id="${deck.id}">Delete</button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function deleteCard(button) {
+        const userId = button.getAttribute('data-user-id');
+        const deckId = button.getAttribute('data-deck-id');
+        const url = `/html/decks/remove/${deckId}?userId=${userId}`;
+
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+
+                window.location.href = '/collection/decks?userId=' + userId;
+            } else {
+                alert('Failed to delete deck');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            const themeStylesheet = document.getElementById('theme-stylesheet');
+            const currentTheme = themeStylesheet.getAttribute('href');
+            const newTheme = currentTheme === '/css/light-mode.css' ? '/css/dark-mode.css' : '/css/light-mode.css';
+            themeStylesheet.setAttribute('href', newTheme);
+        });
+
+    });
+</script>
+</body>
+</html>

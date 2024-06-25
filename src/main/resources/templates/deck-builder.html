@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DeckBuilder</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="/css/dark-mode.css">
+    <link rel="stylesheet" href="/css/card-styles.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="d-top-bar">
+    <a th:href="@{/logout}" class="btn btn-danger my-2 my-sm-0">Logout</a>
+    <button id="toggleButton" class="btn btn-secondary">Night/Light Mode</button>
+</div>
+
+<div class="d-deck-save">
+    <label for="deck-name" class="text-center">Deck name:</label>
+    <input type="text" id="deck-name" name="deck-name" th:value="${deck.name}" class="form-control">
+    <button type="button" class="btn btn-success" onclick="submitForm()">Save</button>
+    <input type="hidden" id="deckId" name="deckId" th:value="${deckId}">
+    <input type="hidden" id="userId" name="userId" th:value="${user.id}">
+    <input type="hidden" id="username" name="user.username" th:value="${user.username}">
+    <input type="hidden" id="password" name="user.password" th:value="${user.password}">
+
+    <button type="button" class="btn btn-primary" onclick="displayAnalytics()">Display Analytics</button>
+</div>
+
+<div id="errorMessage" class="alert alert-danger" style="display:none;"></div>
+
+<div class="d-main-content">
+    <div class="d-sidebar">
+        <div th:each="deckCard : ${deckCards}">
+            <div>
+                <span th:text="${deckCard.card.name}"></span>
+                <span th:text="' x' + ${deckCard.quantity}"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+
+        <div class="bar">
+            <div class="form-inline search-container">
+                <label for="searchInput"></label>
+                <input type="text" id="searchInput" class="form-control mr-sm-2 search-mode" placeholder="Search by name...">
+                <button class="btn btn-outline-success my-2 my-sm-0" onclick="filterCardsByName()">Search</button>
+            </div>
+
+            <div th:each="cost : ${costs}">
+                <button class="btn btn-success my-2 my-sm-0" th:text="${cost == 8 ? '8+' : cost}" th:onclick="'filterCardsByCost(' + ${cost} + ')'"></button>
+            </div>
+
+            <button class="btn btn-outline-success my-2 my-sm-0" onclick="clearFilters()">Clear Filters</button>
+
+        </div>
+
+        <div class="cards-container">
+            <div id="cardsContainer">
+                <div class="row">
+                    <div th:each="card : ${cards}" class="col-md-6 col-lg-4 mb-4 card-element" th:data-cost="${card.cost}" th:data-name="${card.name.toLowerCase()}">
+                        <div class="card-wrapper">
+                            <div class="card text-center">
+                                <div th:replace="~{fragments/card :: cardFragment(${card})}"></div>
+
+                                <div class="card-buttons">
+                                    <form th:action="@{/html/decks/add(userId=${userId})}" method="post">
+                                        <input type="hidden" name="deckId" th:value="${deckId}">
+                                        <input type="hidden" name="cardId" th:value="${card.id}">
+                                        <button class="btn btn-primary" type="submit">Add</button>
+                                    </form>
+                                    <button class="btn btn-danger" type="button" onclick="deleteCard(this);"
+                                            th:data-user-id="${userId}" th:data-card-id="${card.id}" th:data-deck-id="${deckId}">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="analyticsModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <canvas id="manaCostChart"></canvas>
+        <canvas id="toughnessChart"></canvas>
+        <canvas id="attackChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function submitForm() {
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.style.display = 'none';
+
+        const deckName = document.getElementById('deck-name').value;
+        if (!deckName) {
+            errorMessage.style.display = 'block';
+            errorMessage.innerText = 'Deck name cannot be empty.';
+            return;
+        }
+
+        const deckId = document.getElementById('deckId').value;
+        const userId = document.getElementById('userId').value;
+
+        const deck = {
+            id: deckId,
+            name: deckName,
+        };
+
+        const user = {
+            id: userId,
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+
+        const deckLogInDTO = {
+            deck: deck,
+            user: user
+        };
+
+        fetch("/html/decks/save", {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(deckLogInDTO)
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return response.text().then(text => { throw new Error(text) });
+            })
+            .then(() => {
+                window.location.href = '/collection/decks?userId=' + userId;
+            })
+            .catch(error => {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.style.display = 'block';
+                errorMessage.innerText = error.message;
+            });
+    }
+
+    function displayAnalytics() {
+        var modal = document.getElementById("analyticsModal");
+        var span = document.getElementsByClassName("close")[0];
+        modal.style.display = "block";
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        const deckId = document.getElementById('deckId').value;
+        const userId = document.getElementById('userId').value;
+
+        const user = {
+            id: userId,
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+
+        fetch(`/html/decks/analytics/${deckId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(user)
+        })
+            .then(response => response.json())
+            .then(data => {
+                renderCharts(data);
+            })
+            .catch(error => console.error('Error fetching analytics:', error));
+    }
+
+    function renderCharts(data) {
+        const manaCostCtx = document.getElementById('manaCostChart').getContext('2d');
+        new Chart(manaCostCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.manaCost),
+                datasets: [{
+                    label: 'Mana Cost',
+                    data: Object.values(data.manaCost),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const toughnessCtx = document.getElementById('toughnessChart').getContext('2d');
+        new Chart(toughnessCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.toughness),
+                datasets: [{
+                    label: 'Toughness',
+                    data: Object.values(data.toughness),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const attackCtx = document.getElementById('attackChart').getContext('2d');
+        new Chart(attackCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.attack),
+                datasets: [{
+                    label: 'Attack',
+                    data: Object.values(data.attack),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function deleteCard(button) {
+        const userId = button.getAttribute('data-user-id');
+        const cardId = button.getAttribute('data-card-id');
+        const deckId = button.getAttribute('data-deck-id');
+
+        const url = `/html/decks/remove/${deckId}/${cardId}?userId=${userId}`;
+
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.href = '/deck-builder?userId=' + userId + '&deckId=' + deckId;
+
+            } else {
+                alert('Failed to delete card');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function adjustFontSize(element) {
+        const maxHeight = 100;
+        let fontSize = parseFloat(window.getComputedStyle(element).fontSize);
+        while (element.scrollHeight > maxHeight && fontSize > 10) {
+            fontSize -= 1;
+            element.style.fontSize = fontSize + 'px';
+        }
+    }
+
+    function filterCardsByCost(cost) {
+        const cards = document.querySelectorAll('.card-element');
+        cards.forEach(card => {
+            const cardCost = parseInt(card.getAttribute('data-cost'));
+            if (cardCost === cost || (cost === 8 && cardCost >= 8)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function filterCardsByName() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.card-element');
+        cards.forEach(card => {
+            const cardName = card.getAttribute('data-name');
+            if (cardName.includes(searchInput)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function clearFilters() {
+        const cards = document.querySelectorAll('.card-element');
+        cards.forEach(card => {
+            card.style.display = 'block';
+        });
+        document.getElementById('searchInput').value = '';
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            const themeStylesheet = document.getElementById('theme-stylesheet');
+            const currentTheme = themeStylesheet.getAttribute('href');
+            const newTheme = currentTheme === '/css/light-mode.css' ? '/css/dark-mode.css' : '/css/light-mode.css';
+            themeStylesheet.setAttribute('href', newTheme);
+        });
+
+        document.querySelectorAll('.card-text').forEach(adjustFontSize);
+    });
+</script>
+
+</body>
+</html>

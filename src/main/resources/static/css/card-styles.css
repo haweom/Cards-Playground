@@ -1,0 +1,188 @@
+.card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    padding: 15px;
+    margin: 0;
+    display: inline-block;
+    text-align: center;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    box-shadow: none;
+    min-height: 400px;
+}
+
+.deck {
+    border-radius: 5px;
+    padding: 15px;
+    margin: 0;
+    display: inline-block;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    box-shadow: none;
+    min-height: 100px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+.card-title {
+    font-weight: bold;
+    text-align: left;
+}
+
+.card-cost {
+    text-align: right;
+}
+
+.card-image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    object-position: top;
+    display: block;
+}
+
+.card-text {
+    text-align: left;
+    height: 100px;
+    overflow: hidden;
+    margin: 10px 0;
+    font-size: 1em;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+}
+.card-attack,
+.card-toughness {
+    font-weight: bold;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+.logout {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+.bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.bar .form-inline {
+    display: flex;
+    align-items: center;
+}
+.card-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.deck-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+.card-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.deck-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.d-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.d-deck-save {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.d-deck-save input {
+    width: 200px;
+    margin-right: 10px;
+}
+.d-main-content {
+    display: flex;
+    flex: 1;
+}
+.d-sidebar {
+    width: 200px;
+    padding: 10px;
+    border-right: 1px solid #ccc;
+    overflow-y: auto;
+}
+.d-search-container {
+    display: flex;
+    align-items: center;
+}
+#d-searchInput {
+    width: auto;
+    flex-grow: 1;
+    max-width: 500px;
+    min-width: 400px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}

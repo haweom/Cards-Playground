@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Card Collection</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="/css/dark-mode.css">
+    <link rel="stylesheet" href="/css/card-styles.css">
+    <style>
+        .search-container {
+            display: flex;
+            align-items: center;
+        }
+        #searchInput {
+            width: auto;
+            flex-grow: 1;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <div id="theme-toggle" class="theme-toggle">
+        <button id="toggleButton" class="btn btn-secondary">Light/Dark</button>
+    </div>
+    <a th:href="@{/logout}" class="btn btn-danger my-2 my-sm-0 logout">Logout</a>
+
+    <div class = "bar">
+
+        <div class="form-inline search-container">
+            <label for="searchInput"></label>
+            <input type="text" id="searchInput" class="form-control mr-sm-2 search-mode" placeholder="Search by name...">
+            <button class="btn btn-outline-success my-2 my-sm-0" onclick="filterCardsByName()">Search</button>
+        </div>
+
+
+        <div th:each="cost : ${costs}">
+            <button class="btn btn-success my-2 my-sm-0" th:text="${cost == 8 ? '8+' : cost}" th:onclick="'filterCardsByCost(' + ${cost} + ')'"></button>
+        </div>
+
+        <button class="btn btn-outline-success my-2 my-sm-0" onclick="clearFilters()">Clear filters</button>
+
+        <form th:action="@{/card-builder}" method="get" class="form-inline">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <button class="btn btn-warning my-2 my-sm-0" type="submit">Create New Card</button>
+        </form>
+
+        <form th:action="@{/collection/decks}" method="get" class="form-inline">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <button class="btn btn-primary my-2 my-sm-0" type="submit">Decks</button>
+        </form>
+    </div>
+
+    <div class="cards-container">
+        <div id="cardsContainer">
+            <div class="row">
+                <div th:each="card : ${cards}" class="col-md-6 col-lg-4 mb-4 card-element" th:data-cost="${card.cost}" th:data-name="${card.name.toLowerCase()}">
+                    <div class="card-wrapper">
+                        <div class="card text-center">
+                            <div th:replace="~{fragments/card :: cardFragment(${card})}"></div>
+
+                            <div class="card-buttons">
+                                <form th:action="@{/html/cards/edit}" method="get">
+                                    <input type="hidden" name="userId" th:value="${userId}">
+                                    <input type="hidden" name="cardId" th:value="${card.id}">
+                                    <button class="btn btn-primary" type="submit">Edit</button>
+                                </form>
+
+                                <button class="btn btn-danger" type="button" onclick="deleteCard(this);"
+                                        th:data-user-id="${userId}" th:data-card-id="${card.id}">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function deleteCard(button) {
+        const userId = button.getAttribute('data-user-id');
+        const cardId = button.getAttribute('data-card-id');
+
+        const url = `/html/cards/remove/${cardId}?userId=${userId}`;
+
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+
+                window.location.href = '/collection?userId=' + userId;
+            } else {
+                alert('Failed to delete card');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function adjustFontSize(element) {
+        const maxHeight = 100;
+        let fontSize = parseFloat(window.getComputedStyle(element).fontSize);
+        while (element.scrollHeight > maxHeight && fontSize > 10) {
+            fontSize -= 1;
+            element.style.fontSize = fontSize + 'px';
+        }
+    }
+
+    function filterCardsByCost(cost) {
+        const cards = document.querySelectorAll('.card-element');
+        cards.forEach(card => {
+            const cardCost = parseInt(card.getAttribute('data-cost'));
+            if (cardCost === cost || (cost === 8 && cardCost >= 8)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function filterCardsByName() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.card-element');
+        cards.forEach(card => {
+            const cardName = card.getAttribute('data-name');
+            if (cardName.includes(searchInput)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function clearFilters() {
+        const cards = document.querySelectorAll('.card-element');
+        cards.forEach(card => {
+            card.style.display = 'block';
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            const themeStylesheet = document.getElementById('theme-stylesheet');
+            const currentTheme = themeStylesheet.getAttribute('href');
+            const newTheme = currentTheme === '/css/light-mode.css' ? '/css/dark-mode.css' : '/css/light-mode.css';
+            themeStylesheet.setAttribute('href', newTheme);
+        });
+
+        document.querySelectorAll('.card-text').forEach(adjustFontSize);
+    });
+</script>
+</body>
+</html>

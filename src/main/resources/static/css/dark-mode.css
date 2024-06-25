@@ -1,0 +1,143 @@
+body {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.card {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+    display: inline-block;
+    text-align: center;
+    width: 220px;
+}
+
+.deck{
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #555;
+}
+
+.search-mode{
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    background-color: #444444;
+    color: #ffffff;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    background-color: #444444;
+    color: #ffffff;
+}
+
+.card-image img {
+    width: 100%;
+}
+
+.card-type {
+    text-align: left;
+    padding: 5px;
+    background-color: #444444;
+    color: #ffffff;
+}
+
+.cards-container {
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #444444;
+}
+
+.decks-container {
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #444444;
+}
+
+.cb-card-builder-container {
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #444444;
+    max-width: 500px;
+}
+
+.cb-card {
+    background-color: #555555;
+    color: #ffffff;
+    border: 1px solid #777;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.cb-card-header,
+.cb-card-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    background-color: #666666;
+    border-bottom: 1px solid #888;
+}
+
+.cb-card-header .form-group,
+.cb-card-footer .form-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 5px;
+}
+
+.cb-card-header .form-group:last-child,
+.cb-card-footer .form-group:last-child {
+    margin-right: 0;
+}
+
+.cb-card-header .form-group input,
+.cb-card-footer .form-group input {
+    width: 80px;
+}
+
+.cb-card-image img {
+    width: 100%;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.cb-card-type,
+.cb-card-text {
+    width: 100%;
+    text-align: center;
+    background-color: #666666;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    width: 100%;
+    text-align: left;
+}
